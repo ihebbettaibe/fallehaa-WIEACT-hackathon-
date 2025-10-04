@@ -1,6 +1,8 @@
 # 🌾 Fallehaa - WIEACT Hackathon Project
 
 **Empowering Tunisian Women Farmers through Technology**
+Here is the RAG repo : https://github.com/Arslen-Hedhli/rag-wieact.git
+
 
 Fallehaa is a comprehensive web-based platform designed to support Tunisian women farmers through innovative technology solutions. The platform combines semi-autonomous drone technology with AI-powered detection systems, edge computing for real-time alerts, and a digital marketplace to improve knowledge access and promote fair trade practices.
 
