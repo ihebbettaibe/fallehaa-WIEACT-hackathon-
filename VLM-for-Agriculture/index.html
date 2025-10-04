@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroEye - Agricultural Vision Intelligence</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #16a34a 0%, #65a30d 30%, #f59e0b 70%, #eab308 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(22, 163, 74, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            max-height: 95vh;
+            overflow-y: auto;
+            animation: fadeIn 0.8s ease-out;
+            border: 3px solid rgba(22, 163, 74, 0.2);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            grid-column: 1 / -1;
+        }
+
+        .title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #16a34a, #65a30d, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: #15803d;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .feature-tags {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .feature-tag {
+            background: linear-gradient(135deg, rgba(22, 163, 74, 0.15), rgba(101, 163, 13, 0.15));
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #15803d;
+            border: 2px solid rgba(22, 163, 74, 0.2);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-healthy {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #166534;
+            border: 2px solid #86efac;
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+            border: 2px solid #fca5a5;
+        }
+
+        .upload-area {
+            border: 3px dashed #16a34a;
+            border-radius: 16px;
+            padding: 40px 25px;
+            text-align: center;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            background: linear-gradient(135deg, rgba(22, 163, 74, 0.05), rgba(101, 163, 13, 0.05));
+            flex-shrink: 0;
+        }
+
+        .upload-area:hover {
+            border-color: #65a30d;
+            background: linear-gradient(135deg, rgba(22, 163, 74, 0.1), rgba(101, 163, 13, 0.1));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(22, 163, 74, 0.15);
+        }
+
+        .upload-area.dragover {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(234, 179, 8, 0.15));
+            transform: scale(1.02);
+            box-shadow: 0 12px 30px rgba(245, 158, 11, 0.2);
+        }
+
+        .upload-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #15803d;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #65a30d;
+            font-weight: 500;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        .preview-container {
+            display: none;
+            margin-bottom: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 220px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(22, 163, 74, 0.25);
+            margin-bottom: 15px;
+            border: 3px solid #86efac;
+        }
+
+        .remove-image {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .remove-image:hover {
+            background: linear-gradient(135deg, #b91c1c, #991b1b);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+        }
+
+        .settings-panel {
+            background: linear-gradient(135deg, rgba(22, 163, 74, 0.08), rgba(101, 163, 13, 0.08));
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            border: 2px solid rgba(22, 163, 74, 0.15);
+        }
+
+        .settings-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #15803d;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-group {
+            margin-bottom: 18px;
+        }
+
+        .setting-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #15803d;
+            font-size: 0.95rem;
+        }
+
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .range-input {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #dcfce7, #86efac);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .range-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #16a34a, #65a30d);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .range-input::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.5);
+        }
+
+        .range-value {
+            font-weight: 700;
+            color: #16a34a;
+            min-width: 70px;
+            text-align: center;
+            font-size: 0.95rem;
+            background: rgba(22, 163, 74, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+
+        .info-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-weight: 700;
+            color: #d97706;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .info-text {
+            color: #92400e;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #16a34a, #65a30d, #f59e0b);
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            border-radius: 30px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(22, 163, 74, 0.5);
+        }
+
+        .analyze-btn:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 22px;
+            height: 22px;
+            border: 3px solid transparent;
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-container {
+            display: none;
+            margin-top: 25px;
+            padding: 25px;
+            border-radius: 16px;
+            max-height: 380px;
+            overflow-y: auto;
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.15);
+        }
+
+        .result-container.safety-alert {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border-left: 5px solid #dc2626;
+        }
+
+        .result-container.crop-analysis {
+            background: linear-gradient(135deg, rgba(22, 163, 74, 0.08), rgba(101, 163, 13, 0.08));
+            border-left: 5px solid #16a34a;
+        }
+
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-title.safety {
+            color: #991b1b;
+        }
+
+        .result-title.crop {
+            color: #15803d;
+        }
+
+        .result-text {
+            line-height: 1.7;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+        }
+
+        .result-text.safety {
+            color: #991b1b;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .result-text.crop {
+            color: #374151;
+        }
+
+        .error-container {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+            border-radius: 16px;
+            border-left: 5px solid #dc2626;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            animation: fadeInOverlay 0.3s ease-out;
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            animation: modalSlideIn 0.4s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 20px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #dc2626;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-message {
+            font-size: 1.1rem;
+            color: #991b1b;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .modal-btn-primary:hover {
+            background: linear-gradient(135deg, #b91c1c, #991b1b);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+        }
+
+        .modal-btn-secondary {
+            background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+            color: #374151;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-btn-secondary:hover {
+            background: linear-gradient(135deg, #d1d5db, #9ca3af);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 20px 15px;
+                margin: 5px;
+                max-height: 98vh;
+            }
+            
+            .title {
+                font-size: 1.9rem;
+            }
+            
+            .upload-area {
+                padding: 30px 20px;
+            }
+
+            .feature-tags {
+                font-size: 0.8rem;
+            }
+        }
+
+        .container::-webkit-scrollbar,
+        .result-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .container::-webkit-scrollbar-track,
+        .result-container::-webkit-scrollbar-track {
+            background: rgba(22, 163, 74, 0.1);
+            border-radius: 10px;
+        }
+
+        .container::-webkit-scrollbar-thumb,
+        .result-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #16a34a, #65a30d);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">AgroEye</h1>
+            <p class="subtitle">Agricultural Vision Intelligence with Safety Detection</p>
+            <div class="feature-tags">
+                <span class="feature-tag">Human Safety Detection</span>
+                <span class="feature-tag">Crop Disease Analysis</span>
+                <span class="feature-tag">Real-time Diagnostics</span>
+            </div>
+            <div id="statusIndicator" class="status-indicator">
+                <span id="statusIcon">🔄</span>
+                <span id="statusText">Checking server status...</span>
+            </div>
+        </div>
+
+        <div class="left-panel">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">Drop your field image here</div>
+                <div class="upload-hint">JPG, PNG, GIF, and WebP formats supported</div>
+                <input type="file" id="imageInput" accept="image/*">
+            </div>
+
+            <div class="preview-container" id="previewContainer">
+                <img id="imagePreview" class="image-preview" alt="Preview">
+                <br>
+                <button class="remove-image" id="removeImage">🗑️ Remove Image</button>
+            </div>
+
+            <div class="info-box">
+                <div class="info-title">🛡️ Unified Analysis System</div>
+                <div class="info-text">
+                    Our AI prioritizes human safety first. If anyone appears to need help, you'll receive an immediate alert. Otherwise, you'll get detailed crop disease analysis with treatment recommendations.
+                </div>
+            </div>
+
+            <div class="settings-panel">
+                <div class="settings-title">⚙️ Analysis Settings</div>
+                
+                <div class="setting-group">
+                    <label class="form-label">📏 Response Length</label>
+                    <div class="range-container">
+                        <input type="range" id="maxTokens" class="range-input" min="100" max="1000" value="500" step="50">
+                        <span class="range-value" id="maxTokensValue">500 tokens</span>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label class="form-label">🌡️ Creativity Level</label>
+                    <div class="range-container">
+                        <input type="range" id="temperature" class="range-input" min="0.1" max="1.0" value="0.5" step="0.1">
+                        <span class="range-value" id="temperatureValue">0.5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <button class="analyze-btn" id="analyzeBtn">
+                <span class="loading-spinner" id="loadingSpinner"></span>
+                <span id="btnText">🔬 Analyze Image</span>
+            </button>
+
+            <div class="result-container" id="resultContainer">
+                <div class="result-title" id="resultTitle">
+                    <span id="resultIcon">🌿</span>
+                    <span id="resultTitleText">Analysis Result</span>
+                </div>
+                <div class="result-text" id="resultText"></div>
+            </div>
+
+            <div class="error-container" id="errorContainer">
+                <strong>⚠️ Error:</strong> <span id="errorText"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Safety Alert Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div class="modal-icon">🚨</div>
+            <h2 class="modal-title">EMERGENCY: Person Detected</h2>
+            <p class="modal-message">
+                A person has been detected in the field who may require immediate assistance. 
+                Please check on them immediately or contact emergency services.
+            </p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-primary" id="modalAcknowledge">Acknowledge & Take Action</button>
+                <button class="modal-btn modal-btn-secondary" id="modalClose">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const API_BASE = "http://127.0.0.1:5000";
+
+    // Safety keywords to check for
+    const SAFETY_KEYWORDS = [
+        'person', 'human', 'lying', 'fallen', 'collapsed', 'down', 'ground', 
+        'injured', 'hurt', 'unconscious', 'motionless', 'body', 'worker', 
+        'farmer', 'individual', 'distress', 'help', 'emergency', 'safety alert',
+        'yes', 'YES'
+    ];
+
+    class VLMInterface {
+        constructor() {
+            this.initializeElements();
+            this.attachEventListeners();
+            this.checkServerStatus();
+        }
+
+        initializeElements() {
+            this.uploadArea = document.getElementById('uploadArea');
+            this.imageInput = document.getElementById('imageInput');
+            this.previewContainer = document.getElementById('previewContainer');
+            this.imagePreview = document.getElementById('imagePreview');
+            this.removeImageBtn = document.getElementById('removeImage');
+            this.maxTokensSlider = document.getElementById('maxTokens');
+            this.maxTokensValue = document.getElementById('maxTokensValue');
+            this.temperatureSlider = document.getElementById('temperature');
+            this.temperatureValue = document.getElementById('temperatureValue');
+            this.analyzeBtn = document.getElementById('analyzeBtn');
+            this.loadingSpinner = document.getElementById('loadingSpinner');
+            this.btnText = document.getElementById('btnText');
+            this.resultContainer = document.getElementById('resultContainer');
+            this.resultTitle = document.getElementById('resultTitle');
+            this.resultIcon = document.getElementById('resultIcon');
+            this.resultTitleText = document.getElementById('resultTitleText');
+            this.resultText = document.getElementById('resultText');
+            this.errorContainer = document.getElementById('errorContainer');
+            this.errorText = document.getElementById('errorText');
+            this.statusIndicator = document.getElementById('statusIndicator');
+            this.statusIcon = document.getElementById('statusIcon');
+            this.statusText = document.getElementById('statusText');
+            this.modalOverlay = document.getElementById('modalOverlay');
+            this.modalAcknowledge = document.getElementById('modalAcknowledge');
+            this.modalClose = document.getElementById('modalClose');
+
+            this.selectedImage = null;
+        }
+
+        attachEventListeners() {
+            this.uploadArea.addEventListener('click', () => this.imageInput.click());
+            this.uploadArea.addEventListener('dragover', this.handleDragOver.bind(this));
+            this.uploadArea.addEventListener('dragleave', this.handleDragLeave.bind(this));
+            this.uploadArea.addEventListener('drop', this.handleDrop.bind(this));
+            this.imageInput.addEventListener('change', this.handleImageSelect.bind(this));
+            this.removeImageBtn.addEventListener('click', this.removeImage.bind(this));
+            
+            this.maxTokensSlider.addEventListener('input', (e) => {
+                this.maxTokensValue.textContent = `${e.target.value} tokens`;
+            });
+
+            this.temperatureSlider.addEventListener('input', (e) => {
+                this.temperatureValue.textContent = e.target.value;
+            });
+            
+            this.analyzeBtn.addEventListener('click', this.analyzeImage.bind(this));
+            
+            // Modal event listeners
+            this.modalAcknowledge.addEventListener('click', () => this.closeModal());
+            this.modalClose.addEventListener('click', () => this.closeModal());
+            this.modalOverlay.addEventListener('click', (e) => {
+                if (e.target === this.modalOverlay) {
+                    this.closeModal();
+                }
+            });
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                this.uploadArea.addEventListener(eventName, this.preventDefaults, false);
+                document.body.addEventListener(eventName, this.preventDefaults, false);
+            });
+        }
+
+        preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        handleDragOver() {
+            this.uploadArea.classList.add('dragover');
+        }
+
+        handleDragLeave() {
+            this.uploadArea.classList.remove('dragover');
+        }
+
+        handleDrop(e) {
+            this.uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.handleFile(files[0]);
+            }
+        }
+
+        handleImageSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                this.handleFile(file);
+            }
+        }
+
+        handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                this.showError('Please select a valid image file.');
+                return;
+            }
+            this.selectedImage = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.imagePreview.src = e.target.result;
+                this.previewContainer.style.display = 'block';
+                this.hideError();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        removeImage() {
+            this.selectedImage = null;
+            this.imagePreview.src = '';
+            this.previewContainer.style.display = 'none';
+            this.imageInput.value = '';
+            this.hideResult();
+            this.hideError();
+        }
+
+        async checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                if (data.status === 'healthy') {
+                    this.updateStatus('✅', 'Model Ready', 'healthy');
+                } else {
+                    this.updateStatus('❌', 'Model Not Loaded', 'error');
+                }
+            } catch (error) {
+                this.updateStatus('❌', 'Server Offline', 'error');
+            }
+        }
+
+        updateStatus(icon, text, type) {
+            this.statusIcon.textContent = icon;
+            this.statusText.textContent = text;
+            this.statusIndicator.className = `status-indicator status-${type}`;
+        }
+
+        async analyzeImage() {
+            if (!this.selectedImage) {
+                this.showError('Please select an image first.');
+                return;
+            }
+
+            this.setLoading(true);
+            this.hideError();
+            this.hideResult();
+
+            try {
+                const formData = new FormData();
+                formData.append('image', this.selectedImage);
+                formData.append('max_tokens', this.maxTokensSlider.value);
+                formData.append('temperature', this.temperatureSlider.value);
+
+                const response = await fetch(`${API_BASE}/predict`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Check if response contains safety keywords or is flagged as safety alert
+                    const containsSafetyKeywords = this.checkSafetyKeywords(data.response);
+                    const isSafetyAlert = data.is_safety_alert || containsSafetyKeywords;
+                    
+                    if (isSafetyAlert) {
+                        this.showSafetyModal();
+                    }
+                    
+                    this.showResult(data.response, isSafetyAlert);
+                } else {
+                    this.showError(data.error || 'Unknown error occurred.');
+                }
+            } catch (error) {
+                this.showError(`Network error: ${error.message}`);
+            } finally {
+                this.setLoading(false);
+            }
+        }
+
+        checkSafetyKeywords(text) {
+            const lowerText = text.toLowerCase();
+            
+            // Check for exact safety alert message
+            if (text.includes('SAFETY ALERT') || text.includes('⚠️')) {
+                return true;
+            }
+            
+            // Check if response starts with "Yes" or "YES"
+            if (lowerText.trim().startsWith('yes')) {
+                return true;
+            }
+            
+            // Check for multiple safety keywords (require at least 2 for higher confidence)
+            let keywordMatches = 0;
+            for (const keyword of SAFETY_KEYWORDS) {
+                if (lowerText.includes(keyword.toLowerCase())) {
+                    keywordMatches++;
+                    if (keywordMatches >= 2) {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        }
+
+        showSafetyModal() {
+            this.modalOverlay.style.display = 'block';
+            
+            // Play alert sound if available
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2i78OWcTgwOS6Xh8bllHgU7k9n0yXksBSh+zPLaizsKHGm98+yhUBELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHwU7k9j0yXksBSh9y/HaizsKHGi98+yhTxELTKXh8bhlHw==');
+                audio.play().catch(() => {});
+            } catch (e) {}
+        }
+
+        closeModal() {
+            this.modalOverlay.style.display = 'none';
+        }
+
+        setLoading(loading) {
+            this.analyzeBtn.disabled = loading;
+            this.loadingSpinner.style.display = loading ? 'inline-block' : 'none';
+            this.btnText.textContent = loading ? 'Analyzing...' : '🔬 Analyze Image';
+        }
+
+        showResult(text, isSafetyAlert) {
+            this.resultText.textContent = text;
+            
+            if (isSafetyAlert) {
+                this.resultContainer.className = 'result-container safety-alert';
+                this.resultTitle.className = 'result-title safety';
+                this.resultText.className = 'result-text safety';
+                this.resultIcon.textContent = '🚨';
+                this.resultTitleText.textContent = 'Safety Alert';
+            } else {
+                this.resultContainer.className = 'result-container crop-analysis';
+                this.resultTitle.className = 'result-title crop';
+                this.resultText.className = 'result-text crop';
+                this.resultIcon.textContent = '🌿';
+                this.resultTitleText.textContent = 'Crop Analysis';
+            }
+            
+            this.resultContainer.style.display = 'block';
+            this.resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        hideResult() {
+            this.resultContainer.style.display = 'none';
+        }
+
+        showError(message) {
+            this.errorText.textContent = message;
+            this.errorContainer.style.display = 'block';
+            this.errorContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        hideError() {
+            this.errorContainer.style.display = 'none';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        new VLMInterface();
+    });
+    </script>
+</body>
+</html>

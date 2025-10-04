@@ -39,6 +39,12 @@ yolo_anomaly_dataset/
 yolo_plant_disease_dataset/
 plant_disease_dataset/
 VLM-for-Agriculture-main/
+VLM-for-Agriculture/dataset/
+VLM-for-Agriculture/el shyh fel shyh/
+
+# Large model files
+*.safetensors
+*.bin
 
 # IDE
 .vscode/
