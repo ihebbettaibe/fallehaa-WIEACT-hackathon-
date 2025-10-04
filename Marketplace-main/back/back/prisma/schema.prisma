@@ -1,0 +1,74 @@
+// prisma/schema.prisma
+// prisma/schema.prisma
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+  // uncomment next line if you use Prisma <5.10
+  // directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  image     String   // profile picture URL
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  title       String
+  description String
+  price       Float
+  type        ProductType
+  image       String      // product image
+  createdAt   DateTime    @default(now())
+  
+  // Embedded owner data (denormalized)
+  owner       Json        // { id, email, name, image }
+
+  // Embedded messages (denormalized)
+  messages    Json        @default("[]") // [{ id, userId, userName, text, createdAt }]
+}
+
+enum ProductType {
+  SELL
+  TRADE
+}
+
+model Investment {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  goalAmount  Float
+  image       String   // crop/project image
+  createdAt   DateTime @default(now())
+  
+  // Embedded creator data (denormalized)
+  creator     Json     // { id, email, name, image }
+  
+  // Array of backings (embedded)
+  backings    Json     // [{ id, userId, userName, userImage, amount, createdAt }]
+}
+
+model Job {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String
+  type        JobType
+  image       String  // job-related image
+  createdAt   DateTime @default(now())
+  
+  // Embedded poster data (denormalized)
+  poster      Json    // { id, email, name, image }
+}
+
+enum JobType {
+  OFFER // job offer
+  SEEK  // job seeker profile
+}

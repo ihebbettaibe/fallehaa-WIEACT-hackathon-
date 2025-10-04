@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# YOLO Training Outputs
+runs/
+multi_dataset_training/
+yolo_training/
+quick_train/
+
+# Model Weights
+*.pt
+*.pth
+*.onnx
+*.engine
+*.tflite
+*.pb
+
+# Datasets (large files)
+fall_dataset/
+yolo_anomaly_dataset/
+yolo_plant_disease_dataset/
+plant_disease_dataset/
+VLM-for-Agriculture-main/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+*.out
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# YOLOv5 submodule
+yolov5/
+
+# Demo folder
+yolo-plant-disease-demo/
